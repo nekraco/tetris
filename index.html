@@ -1,0 +1,1066 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>tetris</title>
+<meta charset='UTF-8'>
+
+<style>
+  body{
+    background-color: #cccc77;
+
+  }
+
+  #referenceBut, #play{
+    position: absolute;
+    left: 0px;
+    top: 0px;
+
+    color: fuchsia;
+    background-color: blue;
+    font-size: 3vh;
+  }
+
+  #wrapper, #reference{
+    width: 160vh;
+    margin: 7vh auto;
+    border: 1vh solid fuchsia;
+    height: 80vh;
+    background-color: fuchsia;
+
+    /* display: none; */
+  }
+
+  #reference{
+    display: none;
+    font-size: 3vh;
+    color: blue;
+    border: 1vh solid blue;
+  }
+
+  p{
+    text-indent: 2vh;
+  }
+
+  #formula{
+    text-indent: 7vh;
+  }
+
+  #leftsidebar{
+    float: left;
+    width: 40vh;
+    height: 80vh;
+    background-color: blue;
+  }
+
+  #field{
+    float: left;
+    width: 80vh;
+    height: 80vh;
+    //margin: 10px auto;
+    //border: 2vh solid fuchsia;
+    border-spacing: 0px;
+
+  }
+
+  td{
+    width: 3.7vh;
+    height: 3.7vh;
+    border: 1px solid navy;
+    padding: 0px;
+
+  //  font-size: 20px;
+
+  }
+
+  #rightsidebar{
+    float: left;
+    width: 40vh;
+    height: 80vh;
+    background-color: blue;
+  }
+
+  button{
+    width: 40vh;
+    height: 20vh;
+    font-size: 3vh;
+    color: fuchsia;
+    background-color: blue;
+    outline: none;
+    border: none;
+  }
+
+  #end{
+    position: absolute;
+
+    width: 80vh;
+    height: 10vh;
+    font-size: 7vh;
+    color: fuchsia;
+    background-color: blue;
+    text-align: center;
+
+    display: none;
+  }
+
+</style>
+
+</head>
+<body>
+  <input value = 'справка' id = 'referenceBut' type='button' onclick= 'ref()'>
+
+  <div id='reference'>
+
+    <p>
+      1. Управление игрой существляется кнопками мыши. Левая - поворот, правая - быстрое падение.
+    </p>
+    <p>
+      2. Интерфейс: слева - кнопки, посередине - игровое поле, справа - табло.
+    </p>
+    <p>
+      3. По умолчанию в игре учавствуют обычные (средние) фигуры тетриса. Но по желанию, прямо во время игры, можно добавлять (и потом убирать) и простые и  сложные фигуры.
+    </p>
+    <p>
+      4. Цель игры - набрать максимальное количество очков. Очки расчитываются по формуле:
+    </p>
+    <p id='formula'>
+      Количество очков = (20 * скорость * коэфСложныхФигур) / коэфПростыхФигур
+    </p>
+    <p>
+      Без добавления - коэфСложныхФигур и коэфПростыхФигур равны единице. Т е они не учавствуют в расчете очков.
+      При добавлении сложных - коэфСложныхФигур будет равен 2.
+      При добавлении простых - коэфПростыхФигур будет равен 1,5.
+    </p>
+    <p>
+      Т е выгодней всего играть, добавив к средним фигурам, сложные, на втором месте по выгоде - добавить и сложные фигуры и простые (так, очевидно, намного легче),
+      на третьем месте - ничего не добалять, играть только средними и на последнем месте - добавить к средним простые - так легче всего и меньше всего очков.
+    </p>
+    <p>
+      Скорость игры постепенно будет повышаться, что можно видеть на табло.
+    <p>
+
+    <input value = 'вернуться к игре' id='play' type='button' onclick= 'play()'>
+  </div>
+  <div id='wrapper'>
+
+    <div id='leftsidebar'>
+      <button>новая игра</button>
+      <button disabled>пауза</button>
+      <button>добавить сложные фигуры</button>
+      <button>добавить простые фигуры</button>
+    </div>
+
+    <table id='field'></table>
+
+    <div id='rightsidebar'>
+      <button>очки: 0</button>
+      <button>скорость: 0 кл/сек</button>
+      <button>время: 0 сек</button>
+      <button>обратная связь</button>
+
+    </div>
+
+    <div id='end'>конец игры</div>
+
+  </div>
+
+
+<script>
+//adjust - регулировать
+
+  let wrapper = document.getElementById('wrapper');
+  let reference = document.getElementById('reference');
+
+  let ref = () =>{
+    wrapper.style.display = 'none';
+    reference.style.display = 'block';
+  }
+
+  let play = () =>{
+    wrapper.style.display = 'block';
+    reference.style.display = 'none';
+  }
+
+
+//Три глобальные переменные;
+  let bc = 'blue';    // цвет фона;
+  let wf = 20;        // ширина поля;
+  let hf = 20;        // высота поля;
+  let info = document.getElementById('info');
+  let info2 = document.getElementById('info2');
+
+  createTab(wf, hf);
+
+//Игровое поле - таблицу создадим с помощью функции;
+  function createTab(w, h) {
+    let tab = document.getElementById('field');
+
+    for(let i = 0; i < h; i ++) {
+      let tr = document.createElement('tr');
+      tab.appendChild(tr);
+
+      for(let j = 0; j < w; j ++) {
+        let td = document.createElement('td');
+        tr.appendChild(td);
+        td.style.backgroundColor = bc;
+  } } }
+
+//Этот класс создает  различные методы для манипуляций с клетками  и рядами поля;
+  class DRAW {
+    constructor() {
+      this.tab = document.querySelector('table');
+      this.trs = document.getElementsByTagName('tr');
+      this.tds = document.getElementsByTagName('td');
+    }
+
+//С помощью этого метода будем создавать фигуры и заодно маркировать их клетки -innerHTML =  'v';
+    setColorCell(x, y, color) {
+      if(x >= 0 && x < wf && y >= 0 && y < hf) {
+        this.trs[y].children[x].style.backgroundColor = color;
+        if(color != bc && this.getMarkCell(x, y) != 'w') {
+          this.trs[y].children[x].innerHTML = 'v';
+    } } }
+
+    getColorCell(x, y) {
+      if(x >= 0 && x < wf && y >= 0 && y < hf) {
+        return this.trs[y].children[x].style.backgroundColor;
+    } }
+
+//Стираем лишнюю маркировку;
+    markErase() {
+      for (let i = 0; i < this.tds.length; i++) {
+        if(this.tds[i].style.backgroundColor == bc && this.tds[i].innerHTML == 'v') {
+            this.tds[i].innerHTML = '';
+    } } }
+
+
+//Этот маркирующий метод поможет нам отличить клетки, которые уже есть на поле от клеток движущейся фигуры;
+//Маркируем уже имеющиеся цветные клетки - innerHTML = 'w'
+    markCells() {
+      for (let i = 0; i < this.tds.length; i++) {
+        if(this.tds[i].style.backgroundColor != bc) {
+          this.tds[i].innerHTML = 'w';
+        }else{
+          this.tds[i].innerHTML = '';
+    } } }
+
+    getMarkCell(x, y) {
+      if(x >= 0 && x < wf && y >= 0 && y < hf) {
+        return this.trs[y].children[x].innerHTML;
+    } }
+
+//Этот метод, очищающий поле от цветных клеток, пригодится нам при старте игры;
+    doAllCellsColorBc() {
+      for (let i = 0; i < this.tds.length; i++) {
+        this.tds[i].style.backgroundColor = bc;
+        this.tds[i].innerHTML = '';
+    } }
+
+
+
+//Следующие два метода находят левую и правую границу стирания в ряду клеток;
+    leftErase(x, y) {
+        this.leftCellErase = 0;
+        for (let i = x; i >= 0; i--) {
+          if (this.trs[y].children[i].innerHTML == 'w') {
+            this.leftCellErase = i + 1;
+            break;
+        } }
+        return this.leftCellErase;
+    }
+
+    rightErase(x, y) {
+        this.rightCellErase = wf - 1;
+        for (let i = x; i < wf; i++) {
+          if (this.trs[y].children[i].innerHTML == 'w') {
+            this.rightCellErase = i-1;
+            break;
+        } }
+        return this.rightCellErase;
+    }
+
+//Следующие три метода обеспечивают стирание ряда, если в нем нет клетки цвета фона - bc;
+    defEraseRow(num) {
+      for (let i = 0; i < wf; i++) {
+        if(this.getColorCell(i, num) == bc) {
+          return false;
+      } }
+      return true;
+    }
+
+    eraseRow(num) {
+      this.arColor = [];
+      for (let i = 0; i < (num + 1) * wf; i++) {
+        this.arColor[i] = this.tds[i].style.backgroundColor;
+      }
+
+      for (let i = 0; i < wf; i++) {
+        this.arColor.unshift(bc);
+      }
+
+      for (let i = 0; i < (num + 1) * wf; i++) {
+        this.tds[i].style.backgroundColor = this.arColor[i];
+    } }
+
+    doEraseRow() {
+      this.numErase = 0;
+      for (let i = 0; i < hf; i++) {
+        if(this.defEraseRow(i) == true) {
+          this.eraseRow(i);
+          this.numErase++;
+      } }
+      return this.numErase;
+    }
+  }
+
+//Этот класс - шаблон для создания фигур тетриса в квадрате 3 х 3;
+  class FIGURE{
+    constructor([c1, c2, c3, c4, c5, c6, c7, c8, c9]) {
+      this.dr = new DRAW(11, 16, 'blue');
+
+      this.col1 = c1;
+      this.col2 = c2;
+      this.col3 = c3;
+      this.col4 = c4;
+      this.col5 = c5;
+      this.col6 = c6;
+      this.col7 = c7;
+      this.col8 = c8;
+      this.col9 = c9;
+
+      this.a = 0;
+      this.b = wf - 1;
+
+    }
+
+    paintRowFigure(x, y, y_minus, col1, col2, col3) {
+      if(y >= y_minus) {
+        this.a = this.dr.leftErase(x, y - y_minus);
+        this.b = this.dr.rightErase(x, y - y_minus);
+
+        for (let i = this.a; i <= this.b; i++) {
+            this.dr.setColorCell(i, y - y_minus, bc);
+        }
+
+        this.dr.setColorCell(x - 1, y - y_minus, col1);
+        this.dr.setColorCell(x, y - y_minus, col2);
+        this.dr.setColorCell(x + 1, y - y_minus, col3);
+
+        this.dr.markErase();
+    } }
+
+    paintFigure(x, y) {
+      this.paintRowFigure(x, y, 3, 'x', 'x', 'x');
+      this.paintRowFigure(x, y, 2, this.col1, this.col2, this.col3);
+      this.paintRowFigure(x, y, 1, this.col4, this.col5, this.col6);
+      this.paintRowFigure(x, y, 0, this.col7, this.col8, this.col9);
+    } }
+
+//Дальше классы наборов фигур, набор - это одна фигура в разном положении;
+//'x' - помечаем отсутствие цвета;
+//Обычные фигуры - 7 классов;
+  class F1{
+    constructor() {
+      this.c = 'red';
+      this.arF1 = ['x', 'x', 'x', 'x', this.c, 'x', this.c, this.c, this.c];
+      this.arF2 = ['x', this.c, 'x', 'x', this.c, this.c, 'x', this.c, 'x'];
+      this.arF3 = ['x', 'x', 'x', this.c, this.c, this.c, 'x', this.c, 'x'];
+      this.arF4 = ['x', this.c, 'x', this.c, this.c, 'x', 'x', this.c, 'x'];
+
+      this.f1 = new FIGURE(this.arF1);
+      this.f2 = new FIGURE(this.arF2);
+      this.f3 = new FIGURE(this.arF3);
+      this.f4 = new FIGURE(this.arF4);
+
+      this.ar = [this.f1, this.f2, this.f3, this.f4];
+
+    }
+    getAr() {
+      return this.ar;
+  } }
+
+  class F2{
+    constructor() {
+      this.c = 'green';
+      this.arF1 = ['x', 'x', 'x', this.c, 'x', 'x', this.c, this.c, this.c];
+      this.arF2 = ['x', this.c, this.c, 'x', this.c, 'x', 'x', this.c, 'x'];
+      this.arF3 = ['x', 'x', 'x', this.c, this.c, this.c, 'x', 'x', this.c];
+      this.arF4 = ['x', this.c, 'x', 'x', this.c, 'x', this.c, this.c, 'x'];
+
+      this.f1 = new FIGURE(this.arF1);
+      this.f2 = new FIGURE(this.arF2);
+      this.f3 = new FIGURE(this.arF3);
+      this.f4 = new FIGURE(this.arF4);
+
+      this.ar = [this.f1, this.f2, this.f3, this.f4];
+    }
+    getAr() {
+      return this.ar;
+  } }
+
+  class F3{
+    constructor() {
+      this.c = 'yellow';
+      this.arF1 = ['x', this.c, 'x', 'x', this.c, 'x', 'x', this.c, this.c];
+      this.arF2 = ['x', 'x', 'x', this.c, this.c, this.c, this.c, 'x', 'x'];
+      this.arF3 = [this.c, this.c, 'x', 'x', this.c, 'x', 'x', this.c, 'x'];
+      this.arF4 = ['x', 'x', 'x', 'x', 'x', this.c, this.c, this.c, this.c];
+
+      this.f1 = new FIGURE(this.arF1);
+      this.f2 = new FIGURE(this.arF2);
+      this.f3 = new FIGURE(this.arF3);
+      this.f4 = new FIGURE(this.arF4);
+
+      this.ar = [this.f1, this.f2, this.f3, this.f4];
+    }
+    getAr() {
+      return this.ar;
+  } }
+
+  class F4{
+    constructor() {
+      this.c = 'orange';
+      this.arF1 = ['x', 'x', 'x', this.c, this.c, 'x', this.c, this.c, 'x'];
+
+      this.f1 = new FIGURE(this.arF1);
+
+      this.ar = [this.f1, this.f1, this.f1, this.f1];
+    }
+    getAr() {
+      return this.ar;
+  } }
+
+  class F5{
+    constructor() {
+      this.c = 'deeppink';
+      this.arF1 = ['x', 'x', 'x', 'x', this.c, this.c, this.c, this.c, 'x'];
+      this.arF2 = [this.c, 'x', 'x', this.c, this.c, 'x', 'x', this.c, 'x'];
+
+      this.f1 = new FIGURE(this.arF1);
+      this.f2 = new FIGURE(this.arF2);
+
+      this.ar = [this.f1, this.f2, this.f1, this.f2];
+    }
+    getAr() {
+      return this.ar;
+  } }
+
+  class F6{
+    constructor() {
+      this.c = 'brown';
+      this.arF1 = ['x', 'x', 'x', this.c, this.c, 'x', 'x', this.c, this.c];
+      this.arF2 = ['x', this.c, 'x', this.c, this.c, 'x', this.c, 'x', 'x'];
+
+      this.f1 = new FIGURE(this.arF1);
+      this.f2 = new FIGURE(this.arF2);
+
+      this.ar = [this.f1, this.f2, this.f1, this.f2];
+    }
+    getAr() {
+      return this.ar;
+  } }
+
+  class F7{
+    constructor() {
+      this.c = 'cyan';
+      this.arF1 = ['x', 'x', 'x', 'x', 'x', 'x', this.c, this.c, this.c];
+      this.arF2 = ['x', this.c, 'x', 'x', this.c, 'x', 'x', this.c, 'x'];
+
+      this.f1 = new FIGURE(this.arF1);
+      this.f2 = new FIGURE(this.arF2);
+
+      this.ar = [this.f1, this.f2, this.f1, this.f2];
+    }
+    getAr() {
+      return this.ar;
+  } }
+
+//Простые фигуры 3 класса;
+  class F001{
+    constructor() {
+      this.c = 'white';
+      this.arF1 = ['x', 'x', 'x', 'x', 'x', 'x', 'x', this.c, 'x'];
+
+      this.f1 = new FIGURE(this.arF1);
+
+      this.ar = [this.f1, this.f1, this.f1, this.f1];
+    }
+    getAr() {
+      return this.ar;
+  } }
+
+  class F002{
+    constructor() {
+      this.c = 'crimson';
+      this.arF1 = ['x', 'x', 'x', 'x', this.c, 'x', 'x', this.c, 'x'];
+      this.arF2 = ['x', 'x', 'x', 'x', 'x', 'x', this.c, this.c, 'x'];
+
+      this.f1 = new FIGURE(this.arF1);
+      this.f2 = new FIGURE(this.arF2);
+
+      this.ar = [this.f1, this.f2, this.f1, this.f2];
+    }
+    getAr() {
+      return this.ar;
+  } }
+
+  class F003{
+    constructor() {
+      this.c = 'lime';
+      this.arF1 = ['x', 'x', 'x', 'x', this.c, 'x', 'x', this.c, this.c];
+      this.arF2 = ['x', 'x', 'x', 'x', this.c, 'x', this.c, this.c, 'x'];
+      this.arF3 = ['x', 'x', 'x', this.c, this.c, 'x', 'x', this.c, 'x'];
+      this.arF4 = ['x', 'x', 'x', 'x', this.c, this.c, 'x', this.c, 'x'];
+
+      this.f1 = new FIGURE(this.arF1);
+      this.f2 = new FIGURE(this.arF2);
+      this.f3 = new FIGURE(this.arF3);
+      this.f4 = new FIGURE(this.arF4);
+
+      this.ar = [this.f1, this.f2, this.f3, this.f4];
+    }
+    getAr() {
+      return this.ar;
+  } }
+
+//Сложные фигуры 5 классов;
+  class F100{
+    constructor() {
+      this.c = 'khaki';
+      this.arF1 = ['x', this.c, 'x', 'x', this.c, 'x', this.c, this.c, this.c];
+      this.arF2 = ['x', 'x', this.c, this.c, this.c, this.c, 'x', 'x', this.c];
+      this.arF3 = [this.c, this.c, this.c, 'x', this.c, 'x', 'x', this.c, 'x'];
+      this.arF4 = [this.c, 'x', 'x', this.c, this.c, this.c, this.c, 'x', 'x'];
+
+      this.f1 = new FIGURE(this.arF1);
+      this.f2 = new FIGURE(this.arF2);
+      this.f3 = new FIGURE(this.arF3);
+      this.f4 = new FIGURE(this.arF4);
+
+      this.ar = [this.f1, this.f2, this.f3, this.f4];
+    }
+    getAr() {
+      return this.ar;
+  } }
+
+  class F200{
+    constructor() {
+      this.c = 'fuchsia';
+      this.arF1 = ['x', 'x', this.c, 'x', 'x', this.c, this.c, this.c, this.c];
+      this.arF2 = [this.c, this.c, this.c, 'x', 'x', this.c, 'x', 'x', this.c];
+      this.arF3 = [this.c, this.c, this.c,  this.c, 'x', 'x', this.c, 'x', 'x'];
+      this.arF4 = [this.c, 'x', 'x', this.c, 'x', 'x', this.c, this.c, this.c];
+
+      this.f1 = new FIGURE(this.arF1);
+      this.f2 = new FIGURE(this.arF2);
+      this.f3 = new FIGURE(this.arF3);
+      this.f4 = new FIGURE(this.arF4);
+
+      this.ar = [this.f1, this.f2, this.f3, this.f4];
+    }
+    getAr() {
+      return this.ar;
+  } }
+
+  class F300{
+    constructor() {
+      this.c = 'orangered';
+      this.arF1 = [this.c, 'x', 'x', this.c, this.c, this.c, 'x', 'x', this.c];
+      this.arF2 = ['x', this.c, this.c, 'x', this.c, 'x', this.c, this.c, 'x'];
+
+      this.f1 = new FIGURE(this.arF1);
+      this.f2 = new FIGURE(this.arF2);
+
+      this.ar = [this.f1, this.f2, this.f1, this.f2];
+    }
+    getAr() {
+      return this.ar;
+  } }
+
+  class F400{
+    constructor() {
+      this.c = 'gold';
+      this.arF1 = [this.c, this.c, 'x', 'x', this.c, 'x', 'x', this.c, this.c];
+      this.arF2 = ['x', 'x', this.c, this.c, this.c, this.c, this.c, 'x', 'x'];
+
+      this.f1 = new FIGURE(this.arF1);
+      this.f2 = new FIGURE(this.arF2);
+
+      this.ar = [this.f1, this.f2, this.f1, this.f2];
+    }
+    getAr() {
+      return this.ar;
+  } }
+
+  class F500{
+    constructor() {
+      this.c = 'dodgerblue';
+      this.arF1 = ['x', this.c, 'x', this.c, this.c, this.c, 'x', this.c, 'x'];
+
+      this.f1 = new FIGURE(this.arF1);
+
+      this.ar = [this.f1, this.f1, this.f1, this.f1];
+    }
+    getAr() {
+      return this.ar;
+  } }
+
+//Класс менеджер управляет таймерами, кнопками и движениями мыши;
+  class MANAGER{
+    constructor() {
+      this.dr = new DRAW;
+
+      this.x = 10;
+      this.y = 0;
+
+      this.tab = document.querySelector('table');
+      this.tds = document.querySelectorAll('td');
+
+      this.f1 = new F1;
+      this.f2 = new F2;
+      this.f3 = new F3;
+      this.f4 = new F4;
+      this.f5 = new F5;
+      this.f6 = new F6;
+      this.f7 = new F7;
+
+      this.f001 = new F001;
+      this.f002 = new F002;
+      this.f003 = new F003;
+
+      this.f100 = new F100;
+      this.f200 = new F200;
+      this.f300 = new F300;
+      this.f400 = new F400;
+      this.f500 = new F500;
+
+      this.arSimpleFigures = [this.f001, this.f002, this.f003];
+      this.arMiddleFigures = [this.f1, this.f2, this.f3, this.f4, this.f5, this.f6, this.f7];
+      this.arComplexFigures = [this.f100, this.f200, this.f300, this.f400, this.f500];
+
+      this.option = 0;
+      this.switchFigureRandom();
+      this.t = 1000;
+      this.time = this.t;
+      this.numErase = 0;
+      this.numEraseAll = 1;
+
+      this.end = document.getElementById('end');
+
+      this.pause = 1;
+      this.points = 0;
+    }
+
+    switchFigureRandom() {
+      this.f = this.arMiddleFigures[this.getRandomInt(0, this.arMiddleFigures.length - 1)];
+    }
+
+    switchFigureMouse() {
+      this.tab.addEventListener('click', (e) => {
+        this.option++;
+        if(this.option == 4) {
+          this.option = 0;
+        }
+      });
+    }
+
+    stopFigure(x, y) {
+      if(this.dr.getMarkCell(x, y+1) == 'w' &&  this.dr.getMarkCell(x, y) == 'v') {
+        this.doActionsAfterStopFigure();
+        return y;
+      }
+
+      if(this.dr.getMarkCell(x, y) == 'w' &&  this.dr.getMarkCell(x, y-1) == 'v') {
+        this.doActionsAfterStopFigure();
+        return y;
+      }
+
+      if(this.dr.getMarkCell(x, y-1) == 'w' &&  this.dr.getMarkCell(x, y-2) == 'v') {
+        this.doActionsAfterStopFigure();
+        return y;
+    } }
+
+    doActionsAfterStopFigure() {
+      this.numErase = this.dr.doEraseRow();
+      this.dr.markCells();
+      this.y = 0;
+      this.switchFigureRandom();
+      this.startNewTimer();
+      if(this.numErase != 0) {
+        this.numEraseAll++;
+
+        if(this.numEraseAll % 5 == 0) {
+          this.t -= 100;
+          clearInterval(this.stopTimerY);
+          this.time = this.t;
+          this.timerY();
+        }
+      }
+
+    }
+
+    getLeftСorrection(x, y) {
+      for(let i = x - 1, j = -1; i <= x + 1, j <= 1; i++, j++) {
+        if(this.dr.getMarkCell(i, y) == 'v') {
+          return j;
+        }
+      }
+      return 1;
+    }
+
+    getRightСorrection(x, y) {
+      for(let i = x + 1, j = 1; i >= x - 1, j >= -1; i--, j--) {
+        if(this.dr.getMarkCell(i, y) == 'v') {
+          return j;
+        }
+      }
+      return -1;
+    }
+
+    returnNumCellX(e) {
+      this.coordX = Math.floor((e.pageX - this.tab.offsetLeft)/(this.tds[1].offsetLeft));
+      if(this.coord != -1) {
+        return this.coordX;
+    } }
+
+    bindCoordXToMouse(e) {
+      this.num = this.returnNumCellX(e);
+
+      if(this.y >= 2) {
+        this.leftBordRow1 = this.dr.leftErase(this.x, this.y - 2);
+        this.rightBordRow1 = this.dr.rightErase(this.x, this.y - 2);
+        this.leftSideRow1 = this.num + this.getLeftСorrection(this.x, this.y - 2);
+        this.rightSideRow1 = this.num + this.getRightСorrection(this.x, this.y - 2);
+      }
+
+      if(this.y >= 1) {
+        this.leftBordRow2 = this.dr.leftErase(this.x, this.y - 1);
+        this.rightBordRow2 = this.dr.rightErase(this.x, this.y - 1);
+        this.leftSideRow2 = this.num + this.getLeftСorrection(this.x, this.y - 1);
+        this.rightSideRow2 = this.num + this.getRightСorrection(this.x, this.y - 1);
+      }
+
+      this.leftBordRow3 = this.dr.leftErase(this.x, this.y);
+      this.rightBordRow3 = this.dr.rightErase(this.x, this.y);
+      this.leftSideRow3 = this.num + this.getLeftСorrection(this.x, this.y);
+      this.rightSideRow3 = this.num + this.getRightСorrection(this.x, this.y);
+
+      if(this.leftBordRow1 <= this.leftSideRow1 && this.leftBordRow2 <= this.leftSideRow2 && this.leftBordRow3 <= this.leftSideRow3 && this.rightBordRow1 >= this.rightSideRow1 && this.rightBordRow2 >= this.rightSideRow2 && this.rightBordRow3 >= this.rightSideRow3) {
+
+        this.x = this.num;
+    } }
+
+    startNewTimer() {
+      if(this.time == 20) {
+        this.time = this.t;
+        clearInterval(this.stopTimerY);
+        this.timerY();
+    } }
+
+    timerX() {
+      this.tab.addEventListener('contextmenu', () => {
+        if(this.pause % 2 == 1) {
+          this.time = 20;
+          clearInterval(this.stopTimerY);
+          this.timerY();
+        }
+      });
+      this.tab.oncontextmenu = new Function("return false;");
+
+      this.switchFigureMouse();
+      this.tab.addEventListener('mousemove', (e) => {
+        this.bindCoordXToMouse(e);
+      });
+
+      this.stopTimerX = setInterval(() => {
+        this.f.getAr()[this.option].paintFigure(this.x, this.y);
+
+      }, 5);
+    }
+
+    timerY() {
+      this.stopTimerY = setInterval(() => {
+
+        this.stop1 = this.stopFigure(this.x - 1, this.y);
+        this.stop2 = this.stopFigure(this.x, this.y);
+        this.stop3 = this.stopFigure(this.x + 1, this.y);
+
+        if(this.stop1 == 1 || this.stop2 == 1 || this.stop3 == 1) {
+          this.end.style.left = this.tab.offsetLeft + 'px';
+          this.end.style.top = this.tab.offsetTop + 200 + 'px';
+          this.end.style.display = 'block';
+        }
+
+        this.y++;
+
+        this.f.getAr()[this.option].paintFigure(this.x, this.y);
+
+
+        if(this.y == hf - 1) {
+          this.doActionsAfterStopFigure();
+        }
+
+      }, this.time);
+    }
+
+    getRandomInt(min, max) {
+	    return Math.floor(Math.random() * (max - min + 1)) + min;
+    }
+
+    setNumErase(num) {
+      this.numErase = num;
+    }
+
+    getNumErase() {
+      return this.numErase;
+    }
+
+
+    getValueTimerY() {
+      return this.t;
+    }
+
+    getArSimpleFigures() {
+      return this.arSimpleFigures;
+    }
+
+    gerArMiddleFigures() {
+      return this.arMiddleFigures;
+    }
+
+    getArComplexFigures() {
+      return this.arComplexFigures;
+    }
+
+  }
+
+  class INTERFACE {
+    constructor() {
+      this.man = new MANAGER;
+      this.buts = document.querySelectorAll('button');
+
+      this.counter1 = 1;
+      this.counter2 = 1;
+
+      this.points = 0;
+      this.speed = 0;
+      this.time = 0;
+      this.numErase = 0;
+
+      this.coeffComplexFigures = 1;
+      this.coeffSimpleFigures = 1;
+
+    }
+
+    addInBeginning(arr, ar) {
+      for(let i = 0; i < ar.length; i++) {
+        arr.unshift(ar[i]);
+      }
+    }
+
+    addInEnd(arr, ar) {
+      for(let i = 0; i < ar.length; i++) {
+        arr.push(ar[i]);
+      }
+    }
+
+    removeFromBeginning(arr, ar) {
+      for(let i = 0; i < ar.length; i++) {
+        arr.shift(ar[i]);
+      }
+    }
+
+    removeFromEnd(arr, ar) {
+      for(let i = 0; i < ar.length; i++) {
+        arr.pop(ar[i]);
+      }
+    }
+
+    countPoints() {
+      this.points += Number(((20 * this.speed * this.man.getNumErase() *  this.coeffComplexFigures)/this.coeffSimpleFigures).toFixed(0));
+      this.man.setNumErase(0);
+      return this.points;
+    }
+
+    countSpeed() {
+      this.speed = (1000/this.man.getValueTimerY()).toFixed(2);
+    }
+
+    addInfoOfFeedback(par) {
+      this.buts[7].style.backgroundColor = 'fuchsia';
+      this.buts[7].style.color = 'blue';
+
+      this.arValPar = ['pressBut0', 'pressBut11', 'pressBut12', 'pressBut21', 'pressBut22', 'pressBut31', 'pressBut32', 'pressBut4'];
+
+      this.arInfo = ['вы начали новую игру', 'вы на паузе', 'игра продолжается', 'ок, сложные добавлены', 'ок, сложные удалены', 'ок, простые добавлены', 'ок, простые удалены', 'скорость чуток повысилась'];
+
+      for(let i = 0; i < this.arInfo.length; i++) {
+        if(par == this.arValPar[i]) {
+          this.buts[7].innerHTML = this.arInfo[i];
+      } }
+
+      if(this.buts[7].innerHTML != 'вы на паузе') {
+        setTimeout(() => {
+          this.buts[7].style.backgroundColor = 'blue';
+          this.buts[7].style.color = 'fuchsia';
+          this.buts[7].innerHTML = 'обратная связь';
+        }, 2000);
+    }
+  }
+
+    timer() {
+      this.stopTimer = setInterval(() => {
+        this.countSpeed();
+        //this.countPoints();
+        this.time++;
+        this.buts[4].innerHTML = 'очки: ' + this.countPoints();
+        this.buts[5].innerHTML = 'скорость: ' + this.speed + ' кл/сек';
+        this.buts[6].innerHTML = 'время: ' + this.time + ' сек';
+
+        if(this.man.end.style.display == 'block') {
+          this.buts[1].disabled = true;
+          this.buts[2].disabled = true;
+          this.buts[3].disabled = true;
+
+          this.stopAllTimers();
+        }
+
+      }, 1000)
+    }
+
+    startAllTimers() {
+      this.man.timerX();
+      this.man.timerY();
+      this.timer();
+    }
+
+    stopAllTimers() {
+      clearInterval(this.man.stopTimerX);
+      clearInterval(this.man.stopTimerY);
+      clearInterval(this.stopTimer);
+    }
+
+    bindButtons() {
+//старт;
+      this.buts[0].addEventListener('click', () => {
+        this.stopAllTimers();                //если вдруг старая игра не кончится)
+        this.man.end.style.display = 'none';
+        this.man.dr.doAllCellsColorBc();
+        this.startAllTimers();
+        this.man.x = 10;
+        this.man.y = 0;
+        this.time = 0;
+        this.buts[1].disabled = false;
+
+        this.addInfoOfFeedback('pressBut0');
+      });
+
+//пауза;
+
+      this.buts[1].addEventListener('click', () => {
+        this.man.pause ++;
+        if(this.man.pause % 2 == 0) {
+          this.stopAllTimers();
+          this.addInfoOfFeedback('pressBut11');
+          this.buts[0].disabled = true;
+        } else {
+          this.startAllTimers();
+          this.addInfoOfFeedback('pressBut12');
+          this.buts[0].disabled = false;
+        }
+      });
+
+//добавить сложные;
+      this.buts[2].addEventListener('click', () => {
+        this.counter1++;
+        if(this.counter1 % 2 == 0) {
+          this.buts[2].innerHTML = 'удалить сложные фигуры';
+
+          this.addInBeginning(this.man.gerArMiddleFigures(), this.man.getArComplexFigures());
+
+          this.coeffComplexFigures = 2;
+          this.addInfoOfFeedback('pressBut21');
+        }else{
+          this.buts[2].innerHTML = 'добавить сложные фигуры';
+
+          this.removeFromBeginning(this.man.gerArMiddleFigures(), this.man.getArComplexFigures());
+
+          this.coeffComplexFigures = 1;
+          this.addInfoOfFeedback('pressBut22');
+        }
+      });
+
+//добавить простые;
+        this.buts[3].addEventListener('click', () => {
+          this.counter2++;
+          if(this.counter2 % 2 == 0) {
+            this.buts[3].innerHTML = 'удалить простые фигуры';
+
+            this.addInEnd(this.man.gerArMiddleFigures(), this.man.getArSimpleFigures());
+
+            this.coeffSimpleFigures = 1.5;
+            this.addInfoOfFeedback('pressBut31');
+
+          }else{
+            this.buts[3].innerHTML = 'добавить простые фигуры';
+
+            this.removeFromEnd(this.man.gerArMiddleFigures(), this.man.getArSimpleFigures());
+
+            this.coeffSimpleFigures = 1;
+            this.addInfoOfFeedback('pressBut32');
+          }
+      });
+
+
+    }
+  }
+
+  let int = new INTERFACE;
+
+  int.bindButtons();
+
+  // buts[3].innerHTML = 'очки: ' +  m.getPoints();
+  // buts[3].innerHTML = 'вертикальная скорость: '+ '<br>' +  m.getSpeed() + '<br>' + ' (клеток/сек)';
+
+  //  m.timerX();
+  //  m.timerY();
+  // let counter1 = 1;
+  // buts[4].addEventListener('click', function() {
+  //   counter1++;
+  //   if(counter1 % 2 == 0) {
+  //     this.innerHTML = 'удалить сложные фигуры';
+  //
+  //   }else{
+  //     this.innerHTML = 'добавить сложные фигуры';
+  //   }
+  //
+  //
+  // })
+  //
+
+
+
+
+  // let startBut = document.getElementById('start');
+  // startBut.onclick = function() {
+  //   window.location.href = window.location;
+  //   setTimeout(function() {
+  //     m.timerX();
+  //     m.timerY();
+  //
+  //   }, 1000)
+
+
+  //}
+
+
+
+  // let pauseBut = document.getElementById('pause');
+  // pauseBut.onclick = function() {
+  //   clearInterval(m.stopTimerY);
+  // }
+
+
+
+</script>
+</body>
+</html>

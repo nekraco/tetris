@@ -1,0 +1,267 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>tetris3</title>
+<meta charset='UTF-8'>
+
+<style>
+  body{
+    background-color: #339955;
+
+  }
+
+  #d{
+    background-color: #330055;
+
+  }
+
+  #can{
+    background-color: #99aa55;
+
+  }
+
+  #divCan{
+    //margin: 30px auto;
+    width: 350px;
+    height: 700px;
+    background-color: #333333;
+  }
+
+  /* div{
+    width: 50%;
+    height: 300px;
+    font-size: 40px;
+    background-color: #333333;
+    color: #888888;
+    margin: 100px auto;
+    text-align: center;
+
+  } */
+
+
+
+</style>
+
+</head>
+<body>
+
+
+
+    <div id='divCan'>
+      <canvas id='can' width='350px' height='700'>
+    </div>
+
+  <input id='innp'>
+
+<script>
+//Задача 3
+//Попробуем теперь оформить функции анимации фигуры в класс и добавить еще фигур
+
+  let glX = 4;
+  let glY = 0;
+
+  let inp = document.getElementById('innp');
+  //let d = document.getElementById('d');
+  let can = document.getElementById('can');
+  let c = can.getContext('2d');
+
+  function drowTable() {
+
+    for (let i = 0; i <= 20; i++) {
+      c.beginPath();
+      c.moveTo(0, i * 35);
+      c.lineTo(350, i * 35);
+      c.lineWidth = 2
+      c.stroke();
+    }
+    for (let i = 0; i <= 10; i++) {
+      c.beginPath();
+      c.moveTo(i * 35, 0);
+      c.lineTo(i * 35, 700);
+      //c.lineWidth = 2
+      c.stroke();
+    }
+
+
+  }
+
+  drowTable()
+
+  function fillRect(x, y, col, wid) {
+    let rectX = x * 35;
+    let rectY = y * 35;
+
+    c.beginPath();
+    c.fillStyle = 'black';
+    c.strokeRect(rectX, rectY, 35, 35);
+    c.lineWidth = wid;
+
+    //c.beginPath();
+    c.fillStyle = col;
+    c.fillRect(rectX, rectY, 35, 35);
+
+  }
+
+
+
+  class O{
+    constructor() {
+      for (let i = 0; i < 10; i++) {
+        this[i] = [];
+        for (let j = 0; j < 20; j++) {
+          this[i].push(0);
+        }
+      }
+    }
+
+    bindObjectAndTable() {
+      for (let i = 0; i < 10; i++) {
+        for (let j = 0; j < 20; j++) {
+          if (this[i][j] == 0) {
+            fillRect(i, j, '#99aa55', 2);
+          }
+
+          if (this[i][j] == 1) {
+            fillRect(i, j, 'red', 2);
+          }
+
+          if (this[i][j] == 2) {
+            fillRect(i, j, 'green', 2);
+          }
+
+          if (this[i][j] == 3) {
+            fillRect(i, j, 'blue', 2);
+          }
+
+        }
+      }
+    }
+//cell - клетка
+    setCell(x, y, vol) {
+      if(x >= 0 && x <= 9) {
+        this[x][y] = vol;
+      }
+    }
+
+    getCell(x, y) {
+      if(x >= 0 && x <= 9) {
+        return this[x][y];
+      }
+    }
+
+    getArrX(y) {
+      this.ar = [];
+      for(let k = 0; k < 10; k++) {
+        this.ar.push(this[k][y]);
+      }
+
+      return this.ar;
+    }
+
+
+  }
+
+  let o = new O;
+
+
+
+  // o.setCell(1, 5, 1);
+  // o.setCell(3, 5, 2);
+  // o.setCell(7, 5, 3);
+
+  //let xxx = o.getArrX(glY);
+
+  class FIGURES{
+    constructor(width, height) {
+      this.o = new O;
+
+      this.w = width;
+      this.h = height;
+
+    }
+
+    doFigure() {
+      for (let i = 0; i < 10; i++) {
+        this.o.setCell(i, glY - 1, 0);
+      }
+
+      for (let i = 0; i < this.h; i++) {
+
+        for (let j = 0; j < this.w; j++) {
+          this.o.setCell(glX + j, glY + i, 2);
+
+        }
+      }
+
+
+      this.o.bindObjectAndTable()
+      drowTable()
+
+    }
+  }
+
+  let figu = new FIGURES(3, 1)
+
+
+
+
+
+
+  divCan.addEventListener('mousemove', (e) => {
+    //glX = Math.round((e.pageX - 615)/35);
+    glX = Math.floor((e.pageX - 8)/35)
+    //inp.value = glX
+  });
+
+
+
+
+  function start(fff) {
+    window.stop2 = setInterval(() => {
+      //let fff = randomF(doFigure1, doFigure2);
+      fff()
+
+    }, 1)
+
+  }
+
+  //alert(figu.doFigure)
+
+  let vc = figu.doFigure
+  vc()
+
+  window.stop = setInterval(() => {
+    if(glY == 0) {
+      // let funcc = randomF(doFigure1, doFigure2);
+      // window.clearInterval(window.stop2)
+      //start(figu.doFigure)
+
+
+    }
+    //figu.doFigure()
+
+    glY++;
+    xxx = o.getArrX(glY);
+  }, 500)
+
+
+  innp.addEventListener('click', () => {
+    clearInterval(window.stop)
+  })
+
+
+//Более менее работает если не врезаться в боковые стороны поля
+
+
+
+
+
+
+
+
+
+
+
+</script>
+</body>
+</html>

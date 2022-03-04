@@ -1,0 +1,520 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>tetrisNew</title>
+<meta charset='UTF-8'>
+
+<style>
+  body{
+    background-color: #cccc77;
+
+  }
+
+  table{
+    margin: 10px auto;
+  //  border: 5px solid #ffffff;
+    border-spacing: 0px;
+
+  }
+
+  td{
+    width: 40px;
+    height: 40px;
+    border: 1px solid black;
+    padding: 0px;
+
+    font-size: 20px;
+
+  }
+
+  input{
+    width: 25vw;
+    height: 25px;
+    font-size: 20px;
+    color: red;
+    background-color: blue;
+  }
+
+
+
+</style>
+
+</head>
+<body>
+
+  <input id='info'>
+  <br>
+  <input id='info2'>
+
+
+<script>
+//adjust - регулировать
+
+//Три глобальные переменные;
+  let bc = 'blue';    // цвет фона;
+  let wf = 11;        // ширина поля;
+  let hf = 16;        // высота поля;
+  let info = document.getElementById('info');
+  let info2 = document.getElementById('info2');
+
+  //let a, b;
+
+
+  createTab(wf, hf);
+
+//Игровое поле - таблицу создадим с помощью функции;
+  function createTab(w, h) {
+    let body = document.querySelector('body');
+    let tab = document.createElement('table');
+    body.appendChild(tab);
+
+    for(let i = 0; i < h; i ++) {
+      let tr = document.createElement('tr');
+      tab.appendChild(tr);
+
+      for(let j = 0; j < w; j ++) {
+        let td = document.createElement('td');
+        tr.appendChild(td);
+        td.style.backgroundColor = bc;
+  } } }
+
+//Этот класс создает  различные методы для манипуляций с клетками  и рядами поля;
+  class DRAW {
+    constructor() {
+      this.tab = document.querySelector('table');
+      this.trs = document.getElementsByTagName('tr');
+      this.tds = document.getElementsByTagName('td');
+    }
+
+    setColorCell(x, y, color) {
+      if(x >= 0 && x < wf && y >= 0 && y < hf) {
+        this.trs[y].children[x].style.backgroundColor = color;
+      }
+    }
+
+    getColorCell(x, y) {
+      if(x >= 0 && x < wf && y >= 0 && y < hf) {
+        //info.value = x + ' || ' + y;
+        return this.trs[y].children[x].style.backgroundColor;
+
+      }
+    }
+
+//Этот маркирующий метод поможет нам отличить клетки, которые уже есть на поле от клеток движущейся фигуры;
+    markCells() {
+      for (let i = 0; i < this.tds.length; i++) {
+        if(this.tds[i].style.backgroundColor != bc) {
+          this.tds[i].innerHTML = 'w';
+        }else{
+          this.tds[i].innerHTML = '';
+    } } }
+
+    getMarkCell(x, y) {
+      if(x >= 0 && x < wf && y >= 0 && y < hf) {
+        //info.value = x + ' || ' + y;
+        return this.trs[y].children[x].innerHTML;
+
+      }
+    }
+
+    isRowMark(num) {
+      for (let i = 0; i < wf; i++) {
+        if(this.trs[num].children[i].innerHTML != 'w'){
+          return false;
+      } }
+        return true;
+    }
+
+//Следующие два метода находят левую и правую границу стирания в ряду клеток;
+    leftErase(x, y) {
+      this.leftCellErase = 0;
+      for (let i = x; i >= 0; i--) {
+        if (this.trs[y].children[i].innerHTML == 'w') {
+          this.leftCellErase = i + 1;
+          break;
+      } }
+      return this.leftCellErase;
+    }
+
+    rightErase(x, y) {
+      this.rightCellErase = wf - 1;
+      for (let i = x; i < wf; i++) {
+        if (this.trs[y].children[i].innerHTML == 'w') {
+          this.rightCellErase = i - 1;
+          break;
+      } }
+      return this.rightCellErase;
+    }
+
+
+
+//Следующие три метода обеспечивают стирание строки, если в ней нет клетки цвета bc;
+    defEraseRow(num) {
+      for (let i = 0; i < wf; i++) {
+        if(this.getColorCell(i, num) == bc) {
+          return false;
+      } }
+      return true;
+    }
+
+    eraseRow(num) {
+      this.arColor = [];
+      for (let i = 0; i < (num + 1) * wf; i++) {
+        this.arColor[i] = this.tds[i].style.backgroundColor;
+      }
+
+      for (let i = 0; i < wf; i++) {
+        this.arColor.unshift(bc);
+      }
+
+      for (let i = 0; i < (num + 1) * wf; i++) {
+        this.tds[i].style.backgroundColor = this.arColor[i];
+    } }
+
+    doEraseRow() {
+      for (let i = 0; i < hf; i++) {
+        if(this.defEraseRow(i) == true && this.isRowMark(i) == true) {
+          this.eraseRow(i);
+          this.markCells();
+    } } }
+
+  }
+
+//Этот класс - шаблон для создания фигур тетриса из квадрата (3 х 3);
+  class FIGURE{
+    constructor([c1, c2, c3, c4, c5, c6, c7, c8, c9]) {
+      this.dr = new DRAW(11, 16, 'blue');
+
+      this.col1 = c1;
+      this.col2 = c2;
+      this.col3 = c3;
+      this.col4 = c4;
+      this.col5 = c5;
+      this.col6 = c6;
+      this.col7 = c7;
+      this.col8 = c8;
+      this.col9 = c9;
+
+
+      this.leftBorder = 0;
+      this.rightBorder = 10;
+
+
+      this.a = 0;
+      this.b = 10;
+
+    }
+
+    limitFigureX(x) {
+      if(this.col1 == 'x' && this.col4 == 'x' && this.col7 == 'x') {
+        this.leftBorder = 0;
+      } else {
+        this.leftBorder = 1;
+      }
+      if(this.col3 == 'x' && this.col6 == 'x' && this.col9 == 'x') {
+        this.rightBorder = 10;
+      } else {
+        this.rightBorder = 9;
+      }
+
+      if(x <= this.leftBorder) {
+        x = this.leftBorder;
+      }
+
+      if(x >= this.rightBorder) {
+        x = this.rightBorder;
+      }
+
+    }
+
+    paintRowFigure(x, y, y_minus, col1, col2, col3) {
+
+      if(col1 == col2 && col2 == col3 && col3 == 'x') {
+        col1 = bc;
+        col2 = bc;
+        col3 = bc;
+      }
+
+      if(y >= y_minus) {
+        this.a = this.dr.leftErase(x, y);
+        this.b = this.dr.rightErase(x, y);
+        //this.dr.setColorCell(this.a, y, 'white');
+        //a = this.a;
+        //b = this.b;
+        info.value = this.a + ' | ' + this.b
+        //info.value = x
+        for (let i = this.a; i <= this.b; i++) {
+            this.dr.setColorCell(i, y - y_minus, bc);
+        }
+
+        this.dr.setColorCell(x - 1, y - y_minus, col1);
+        this.dr.setColorCell(x, y - y_minus, col2);
+        this.dr.setColorCell(x + 1, y - y_minus, col3);
+
+
+
+        //this.dr.setColorCell(this.a, y - y_minus, 'white');
+       //this.dr.setColorCell(this.b, y - y_minus, 'white');
+
+    } }
+
+    paintFigure(x, y) {
+      this.limitFigureX(x);
+
+      //info.value = x + '|' + this.leftBorder + this.col1+this.col4+this.col7
+      this.paintRowFigure(x, y, 3, bc, bc, bc);
+      this.paintRowFigure(x, y, 2, this.col1, this.col2, this.col3);
+      this.paintRowFigure(x, y, 1, this.col4, this.col5, this.col6);
+      this.paintRowFigure(x, y, 0, this.col7, this.col8, this.col9);
+
+    }
+  }
+
+//Дальше классы наборов фигур, набор - это одна фигура в разном положении;
+  class F1{
+    constructor() {
+      this.c = 'red';
+      this.arF1 = ['x', 'x', 'x', 'x', this.c, 'x', this.c, this.c, this.c];
+      this.arF2 = ['x', this.c, 'x', 'x', this.c, this.c, 'x', this.c, 'x'];
+      this.arF3 = ['x', 'x', 'x', this.c, this.c, this.c, 'x', this.c, 'x'];
+      this.arF4 = [bc, this.c, 'x', this.c, this.c, 'x', 'x', this.c, 'x'];
+
+      this.f1 = new FIGURE(this.arF1);
+      this.f2 = new FIGURE(this.arF2);
+      this.f3 = new FIGURE(this.arF3);
+      this.f4 = new FIGURE(this.arF4);
+
+      this.ar = [this.f1, this.f2, this.f3, this.f4,];
+
+    }
+    getAr() {
+      return this.ar;
+    }
+  }
+
+  class F2{
+    constructor() {
+      this.c = 'green';
+      this.arF1 = ['x', 'x', 'x', this.c, 'x', 'x', this.c, this.c, this.c];
+      this.arF2 = ['x', this.c, this.c, 'x', this.c, 'x', 'x', this.c, 'x'];
+      this.arF3 = ['x', 'x', 'x', this.c, this.c, this.c, 'x', 'x', this.c];
+      this.arF4 = ['x', this.c, 'x', 'x', this.c, 'x', this.c, this.c, 'x'];
+
+      this.f1 = new FIGURE(this.arF1);
+      this.f2 = new FIGURE(this.arF2);
+      this.f3 = new FIGURE(this.arF3);
+      this.f4 = new FIGURE(this.arF4);
+
+      this.ar = [this.f1, this.f2, this.f3, this.f4,];
+
+    }
+    getAr() {
+      return this.ar;
+    }
+  }
+
+
+  class F3{
+    constructor() {
+      this.c = 'yellow';
+      this.arF1 = ['x', this.c, 'x', 'x', this.c, 'x', 'x', this.c, this.c];
+      this.arF2 = ['x', 'x', 'x', this.c, this.c, this.c, this.c, 'x', 'x'];
+      this.arF3 = [this.c, this.c, 'x', 'x', this.c, 'x', 'x', this.c, 'x'];
+      this.arF4 = ['x', 'x', 'x', 'x', 'x', this.c, this.c, this.c, this.c];
+
+      this.f1 = new FIGURE(this.arF1);
+      this.f2 = new FIGURE(this.arF2);
+      this.f3 = new FIGURE(this.arF3);
+      this.f4 = new FIGURE(this.arF4);
+
+      this.ar = [this.f1, this.f2, this.f3, this.f4,];
+
+    }
+    getAr() {
+      return this.ar;
+    }
+  }
+
+
+
+//Класс менеджер управляет таймерами, кнопками и движениями мыши;
+  class MANAGER{
+    constructor() {
+      this.dr = new DRAW;
+
+      this.a = 0;
+      this.b = 10;
+
+      this.x = 5;
+      this.y = 0;
+
+      this.tab = document.querySelector('table');
+      this.tds = document.querySelectorAll('td');
+
+      this.f1 = new F1;
+      this.f2 = new F2;
+      this.f3 = new F3;
+
+      this.option = 0;
+      this.flagMark = 0;
+
+      this.f = this.randomFigure();
+      //this.nnn()
+    }
+
+    randomFigure() {
+      this.arr = [this.f3, this.f1];
+      return this.arr[this.getRandomInt(0, 1)]
+    }
+
+    switchFigureMouse() {
+      this.tab.addEventListener('click', (e) => {
+        this.option++;
+        if(this.option == 4) {
+          this.option = 0;
+        }
+
+      });
+    }
+
+    returnNumCellX(e) {
+      this.coordX = Math.floor((e.pageX - this.tab.offsetLeft)/(this.tds[1].offsetLeft));
+      if(this.coord != -1) {
+        return this.coordX;
+      }
+    }
+
+    nnn() {
+      for(let i = 12; i < 16; i++) {
+        this.dr.setColorCell(5, i, 'red');
+      }
+      this.dr.markCells();
+    }
+
+
+    stopCell(x, y) {
+      //info.value = this.dr.getColorCell(x, y + 1);
+      if(x < 0) {
+        x = 0;
+      }
+      if(x > 10) {
+        x = 10;
+      }
+
+
+      if(y < 16 && this.dr.getMarkCell(x, y + 1) == 'w' &&  this.dr.getMarkCell(x, y) != 'w' && this.dr.getColorCell(x, y) != bc) {
+
+          this.dr.markCells();
+          this.y = 0;
+
+      }
+      //this.dr.setColorCell(x, y, 'red')
+
+      if(y < 16 && this.dr.getMarkCell(x, y-1) != 'w' && this.dr.getMarkCell(x, y) == 'w' && this.dr.getColorCell(x, y-1) != bc){
+
+          this.dr.markCells();
+          this.y = 0;
+
+      }
+
+    if(y < 16 && this.dr.getMarkCell(x, y-2) != 'w' && this.dr.getMarkCell(x, y-1) == 'w' && this.dr.getColorCell(x, y-2) != bc){
+        //this.dr.markCells();
+
+        //setTimeout(() => {
+          this.dr.markCells();
+          this.y = 0;
+
+        //}, 500);
+        //alert(3)
+      }
+    }
+
+  xCell(e) {
+    //this.ff = this.randomFigure()
+    this.a = this.dr.leftErase(this.x, this.y);
+    this.b = this.dr.rightErase(this.x, this.y);
+
+  //info2.value = this.a + ' |n ' + this.b
+
+    this.zzz = this.returnNumCellX(e)
+    if(this.zzz >= this.a && this.zzz <= this.b) {
+      this.x = this.zzz;
+      //info.value = this.x
+    }
+  }
+
+    timerX() {
+      this.switchFigureMouse();
+
+      this.tab.addEventListener('contextmenu', () => {
+        alert('right')
+
+      });
+      this.tab.oncontextmenu = new Function("return false;");
+
+
+
+      this.tab.addEventListener('mousemove', (e) => {
+      //this.x = this.returnNumCellX(e);
+      this.xCell(e);
+      //info.value= this.returnNumCellX(e);
+      });
+      //this.f.getAr()[this.option].paintFigure(this.x, this.y)
+
+      setInterval(() => {
+
+
+        this.f.getAr()[this.option].paintFigure(this.x, this.y)
+
+      }, 50);
+    }
+
+    timerY() {
+      setInterval(() => {
+        this.y++;
+
+        this.f.getAr()[this.option].paintFigure(this.x, this.y)
+
+        // info.value = this.dr.getColorCell(this.x - 1, this.y) + ' | ' + this.dr.getColorCell(this.x, this.y) + ' | ' + this.dr.getColorCell(this.x + 1, this.y);
+        //
+        // info2.value = this.dr.getMarkCell(this.x - 1, this.y + 1) + ' | ' + this.dr.getMarkCell(this.x, this.y + 1) + ' | ' + this.dr.getMarkCell(this.x + 1, this.y + 1);
+
+        this.stopCell(this.x - 1, this.y);
+        this.stopCell(this.x, this.y);
+        this.stopCell(this.x + 1, this.y);
+        //alert(2)
+        //info.value = this.y
+
+        this.dr.doEraseRow()
+
+
+        if(this.y == hf - 1) {
+          //alert(6)
+
+          this.dr.markCells();
+          this.y = 0;
+          //alert(888)
+        }
+        if(this.y == 0) {
+          this.f = this.randomFigure();
+        }
+
+      }, 500);
+
+    }
+
+    getRandomInt(min, max) {
+	    return Math.floor(Math.random() * (max - min + 1)) + min;
+    }
+
+  }
+
+  let m = new MANAGER;
+
+  m.timerX();
+  m.timerY();
+
+
+</script>
+</body>
+</html>

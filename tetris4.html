@@ -1,0 +1,630 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>tetris4</title>
+<meta charset='UTF-8'>
+
+<style>
+  body{
+    background-color: #339955;
+
+  }
+
+  #d{
+    margin: 5vh auto;
+    width: 70vw;
+    height: 70vh;
+    background-color: #330055;
+    font-size: 100px;
+    text-align: center;
+  }
+
+  #can{
+    background-color: #99aa55;
+
+  }
+
+  #divCan{
+    //margin: 30px auto;
+    width: 350px;
+    height: 700px;
+    background-color: #333333;
+  }
+
+  /* div{
+    width: 50%;
+    height: 300px;
+    font-size: 40px;
+    background-color: #333333;
+    color: #888888;
+    margin: 100px auto;
+    text-align: center;
+
+  } */
+
+
+
+</style>
+
+</head>
+<body>
+
+
+
+    <div id='d'>бфхф</div>
+
+  <!-- <input id='innp'> -->
+
+<script>
+//Задача 4
+//Попробуем решить такую (упрощенную) задачу - модель тетриса:
+// Пусть у нас есть 2 набора фунций по две в каждом и одна из них главная(в каждом)
+//Есть глобальная переменная, при ее значении ноль выбирается рандомно набор и начинает срабатывать главная функция из этого набора в setInterval, с помощью клика мыши можно переключать вызовы функций из данного набора (т е одна из них срабатывает в setInterval). Когда значение глоб пер становится равным какому то значению(а она тоже в этом setInterval), она переключается на ноль и снова происходит рандомный выбор и т д.
+
+  // let w = 0;
+  // let list = 0;
+  //
+  // let gl = 0;
+  // let d = document.getElementById('d');
+  //
+  // function a1() {
+  //   gl++;
+  //   d.innerHTML = 'a1' + gl + ' | ' + list;
+  //   d.style.color = '#ffff00';
+  //
+  // }
+  //
+  // function a2() {
+  //   gl += 10;
+  //   d.innerHTML = 'a2' + gl + ' | ' + list;
+  //   d.style.color = 'red';
+  //
+  // }
+  //
+  // function b1() {
+  //   gl++;
+  //   d.innerHTML = 'b1' + gl + ' | ' + list;
+  //   d.style.color = '#00ffff';
+  //
+  // }
+  //
+  // function b2() {
+  //   gl += 10;
+  //   d.innerHTML = 'b2' + gl + ' | ' + list;
+  //   d.style.color = 'green';
+  //
+  // }
+  //
+  // function getRandomInt(min, max) {
+  // 	return Math.floor(Math.random() * (max - min + 1)) + min;
+  // }
+  //
+  // function randomF(f1, f2) {
+  //   let ch = getRandomInt(1, 2)
+  //
+  //   if(ch == 1) {
+  //     return f1;
+  //   }
+  //   if(ch == 2) {
+  //     return f2;
+  //   }
+  //
+  // }
+  //
+  // let func;
+  //
+  // setInterval(() => {
+  //
+  //   if(w > 20) {
+  //     w = 0;
+  //   }
+  //   if(w == 0) {
+  //     func = randomF(a1, b1);
+  //   }
+  //
+  //
+  //   if(func == a1 && list == 0) {
+  //     func = a1;
+  //
+  //   }
+  //   if(func == a1 && list == 1) {
+  //     func = a2;
+  //
+  //   }
+  //   if(func == a2 && list == 0) {
+  //     func = a1;
+  //   }
+  //
+  //   if(func == b1 && list == 0) {
+  //     func = b1;
+  //   }
+  //   if(func == b1 && list == 1) {
+  //     func = b2;
+  //   }
+  //   if(func == b2 && list == 0) {
+  //     func = b1;
+  //   }
+  //
+  //
+  //   func()
+  //   w++;
+  //   }, 500)
+  //
+  //
+  // d.addEventListener('click', function() {
+  //   list++;
+  //
+  //   if(list == 2) {
+  //     list = 0;
+  //   }
+  //
+  // })
+  //
+//ТЕПЕРЬ ТОЖЕ САМОЕ НА КЛАССАХ
+
+  let list = 0;
+
+  class FIG{
+    constructor(nameInner, color) {
+      this.d = document.getElementById('d');
+      this.g = 0;
+      this.n = nameInner;
+      this.col = color;
+
+    }
+
+    m() {
+      this.g++;
+      this.d.innerHTML = this.n + this.g + ' | ' + list;
+      this.d.style.color = this.col;
+
+    }
+
+
+  }
+
+
+//__________________________________
+
+  function getRandomInt(min, max) {
+  	return Math.floor(Math.random() * (max - min + 1)) + min;
+  }
+
+  function randomF(f1, f2) {
+    let ch = getRandomInt(1, 2)
+
+    if(ch == 1) {
+      return f1;
+    }
+    if(ch == 2) {
+      return f2;
+    }
+
+  }
+
+//__________________________________
+
+
+  class MANAGER{
+    constructor() {
+      this.listener = 0;
+      this.w = 0;
+      this.obj = 0;
+
+      this.a1 = new FIG('a1', '#ffff00');
+      this.a2 = new FIG('a2', 'red');
+      this.b1 = new FIG('b1', '#00ffff');
+      this.b2 = new FIG('b2', 'green');
+
+    }
+
+    metodIf(ob1, ob2, l) {
+      if(this.obj == ob1 && list == l) {
+        this.obj = ob2;
+
+      }
+    }
+
+    start() {
+      setInterval(() => {
+
+        if(this.w > 20) {
+          this.w = 0;
+        }
+        if(this.w == 0) {
+          this.obj = randomF(this.a1, this.b1);
+        }
+
+        //this.metodIf(this.a1, this.a1, 0);
+        this.metodIf(this.a1, this.a2, 1);
+        this.metodIf(this.a2, this.a1, 0);
+
+        //this.metodIf(this.b1, this.b1, 0);
+        this.metodIf(this.b1, this.b2, 1);
+        this.metodIf(this.b2, this.b1, 0);
+
+
+        this.obj.m()
+
+        this.w++;
+        }, 500)
+
+
+        this.a1.d.addEventListener('click', function() {
+            list++;
+
+            if(list == 2) {
+              list = 0;
+            }
+
+          })
+
+      }
+
+
+  }
+
+  //let man = new MANAGER;
+  //man.start()
+
+//Работает! Теперь надо усложнить задачу добавив быстрый таймер
+
+
+
+
+
+///////////////////////////////////////////////
+//Это в справку
+  // class FIG{
+  //   constructor(nameInner, color) {
+  //     this.d = document.getElementById('d');
+  //     this.g = 0;
+  //     this.n = nameInner;
+  //     this.col = color;
+  //
+  //   }
+  //
+  //   m() {
+  //     this.g++;
+  //     this.d.innerHTML = this.n + this.g;
+  //     this.d.style.color = this.col;
+  //
+  //   }
+  //
+  //
+  //
+  //   v() {
+  //     this.foo = this.m;
+  //     this.foo()
+  //   }
+  //
+  //
+  // }
+  //
+  // class INTERVAL{
+  //   constructor() {
+  //     //this.d = document.getElementById('d');
+  //     this.a1 = new FIG('a1', '#ffff00');
+  //
+  //   }
+  //
+  //   met() {
+  //     this.a1.m();
+  //
+  //   }
+  //
+  //   mmm() {
+  //     //this.
+  //     this.fo = this.a1;
+  //     this.fo.m();
+  //   }
+  //
+  // }
+  //
+  //
+  //
+  // let inter = new INTERVAL;
+  // //inter.met()
+  // inter.mmm()
+
+
+
+  // let obj = {
+  //   d: document.getElementById('d'),
+  //   m: function() {
+  //
+  //     this.d.innerHTML.bind(this)
+  //     this.d.innerHTML = 'SssX'
+  //   }
+  // }
+  //
+  // let ob = {
+  //   ee: 77,
+  //   a1: obj,
+  //   mm: function() {
+  //     this.ii = this.a1.m;
+    // }         = function() {
+    //               this.d.innerHTML = 'SssX'
+    //             }
+  // }
+
+  // ob.a1.m()
+
+  // ob.mm()
+  // alert(ob.ii())
+///////////////////////////////////////////////
+
+
+
+
+//*********************************************************
+//При вызове функции start() запускается быстрый таймер
+  // function start(fff) {
+  //    window.stop = setInterval(() => {
+  //     fff()
+  //
+  //    }, 1)
+  //
+  //  }
+
+//Медденный таймер запускается сразу, сам собой
+//И включает быстрый таймер, вначале и когда глоб пер прошла цикл и стала снова равна нулю
+  // setInterval(() => {
+  //   if(glY == 0) {
+  //      let func = randomF(doFigure1, doFigure2);
+  //      window.clearInterval(window.stop)
+  //      start(func)
+  //    }
+//***************************************************
+
+
+
+
+
+//   let glX = 4;
+//   let glY = 0;
+//
+//   let inp = document.getElementById('innp');
+//   let d = document.getElementById('d');
+//   let can = document.getElementById('can');
+//   let c = can.getContext('2d');
+//
+//   function drowTable() {
+//
+//     for (let i = 0; i <= 20; i++) {
+//       c.beginPath();
+//       c.moveTo(0, i * 35);
+//       c.lineTo(350, i * 35);
+//       c.lineWidth = 2
+//       c.stroke();
+//     }
+//     for (let i = 0; i <= 10; i++) {
+//       c.beginPath();
+//       c.moveTo(i * 35, 0);
+//       c.lineTo(i * 35, 700);
+//       //c.lineWidth = 2
+//       c.stroke();
+//     }
+//
+//
+//   }
+//
+//   drowTable()
+//
+//   function fillRect(x, y, col, wid) {
+//     let rectX = x * 35;
+//     let rectY = y * 35;
+//
+//     c.beginPath();
+//     c.fillStyle = 'black';
+//     c.strokeRect(rectX, rectY, 35, 35);
+//     c.lineWidth = wid;
+//
+//     //c.beginPath();
+//     c.fillStyle = col;
+//     c.fillRect(rectX, rectY, 35, 35);
+//
+//   }
+//
+//
+//
+//   class O{
+//     constructor() {
+//       for (let i = 0; i < 10; i++) {
+//         this[i] = [];
+//         for (let j = 0; j < 20; j++) {
+//           this[i].push(0);
+//         }
+//       }
+//     }
+//
+//     bindObjectAndTable() {
+//       for (let i = 0; i < 10; i++) {
+//         for (let j = 0; j < 20; j++) {
+//           if (this[i][j] == 0) {
+//             fillRect(i, j, '#99aa55', 2);
+//           }
+//
+//           if (this[i][j] == 1) {
+//             fillRect(i, j, 'red', 2);
+//           }
+//
+//           if (this[i][j] == 2) {
+//             fillRect(i, j, 'green', 2);
+//           }
+//
+//           if (this[i][j] == 3) {
+//             fillRect(i, j, 'blue', 2);
+//           }
+//
+//         }
+//       }
+//     }
+// //cell - клетка
+//     setCell(x, y, vol) {
+//       if(x >= 0 && x <= 9) {
+//         this[x][y] = vol;
+//       }
+//     }
+//
+//     getCell(x, y) {
+//       if(x >= 0 && x <= 9) {
+//         return this[x][y];
+//       }
+//     }
+//
+//     getArrX(y) {
+//       this.ar = [];
+//       for(let k = 0; k < 10; k++) {
+//         this.ar.push(this[k][y]);
+//       }
+//
+//       return this.ar;
+//     }
+//
+//
+//   }
+//
+//   let o = new O;
+//
+//
+//
+//   // o.setCell(1, 5, 1);
+//   // o.setCell(3, 5, 2);
+//   // o.setCell(7, 5, 3);
+//
+//   let xxx = o.getArrX(glY);;
+//
+//
+//   function doFigure1() {
+//
+//     for (let i = 0; i < 10; i++) {
+//       o.setCell(i, glY - 1, 0);
+//     }
+//
+//     o.setCell(glX, glY, 1);
+//     o.setCell(glX - 1, glY, 1);
+//     o.setCell(glX + 1, glY, 1);
+//
+//     o.setCell(glX - 2, glY, xxx[glX - 2]);
+//     o.setCell(glX + 2, glY, xxx[glX + 2]);
+//
+//
+//     if(glY == 19 || o.getCell(glX-1, glY+1) !=0 || o.getCell(glX, glY+1 !=0) || o.getCell(glX+1, glY+1) !=0){
+//       glX = 4;
+//       glY = 0;
+//
+//     }
+//
+//     o.bindObjectAndTable()
+//     drowTable()
+//
+//   }
+//
+//
+//   function doFigure2() {
+//
+//     //if(glY > 0) {
+//       for (let i = 0; i < 10; i++) {
+//         o.setCell(i, glY - 3, 0);
+//     //  }
+//
+//     }
+//
+//     //inp.value = xxx[glX - 2]
+//     o.setCell(glX, glY - 2, 1);
+//     o.setCell(glX, glY - 1, 1);
+//     o.setCell(glX, glY, 1);
+//     //o.setCell(glX - 1, glY, 1);
+//     //o.setCell(glX + 1, glY, 1);
+//     o.setCell(glX - 1, glY - 2, xxx[glX - 1]);
+//     o.setCell(glX + 1, glY - 2, xxx[glX + 1]);
+//
+//     o.setCell(glX - 1, glY - 1, xxx[glX - 1]);
+//     o.setCell(glX + 1, glY - 1, xxx[glX + 1]);
+//
+//     o.setCell(glX - 1, glY, xxx[glX - 1]);
+//     o.setCell(glX + 1, glY, xxx[glX + 1]);
+//
+//
+//
+//    if(glY == 19 || o.getCell(glX, glY+1) != 0){
+//        glX = 4;
+//        glY = 0;
+//
+//    }
+//
+//     o.bindObjectAndTable()
+//     drowTable()
+//
+//   }
+//
+//   function getRandomInt(min, max) {
+// 	  return Math.floor(Math.random() * (max - min + 1)) + min;
+//   }
+//
+//   function randomF(f1, f2) {
+//     let ch = getRandomInt(1, 2)
+//
+//     if(ch == 1) {
+//       return f1;
+//     }
+//     if(ch == 2) {
+//       return f2;
+//     }
+//
+//   }
+//
+//
+//
+//   divCan.addEventListener('mousemove', (e) => {
+//     //glX = Math.round((e.pageX - 615)/35);
+//     glX = Math.floor((e.pageX - 8)/35)
+//     //inp.value = glX
+//   });
+//
+//
+//
+//
+//   function start(fff) {
+//     window.stop2 = setInterval(() => {
+//       //let fff = randomF(doFigure1, doFigure2);
+//       fff()
+//
+//     }, 1)
+//
+//   }
+//
+//   window.stop = setInterval(() => {
+//     if(glY == 0) {
+//       let funcc = randomF(doFigure1, doFigure2);
+//       window.clearInterval(window.stop2)
+//       start(funcc)
+//     }
+//
+//
+//     glY++;
+//     xxx = o.getArrX(glY);
+//   }, 500)
+//
+//
+//   innp.addEventListener('click', () => {
+//     clearInterval(window.stop)
+//   })
+
+
+//Более менее работает если не врезаться в боковые стороны поля
+
+
+
+
+
+
+
+
+
+
+
+</script>
+</body>
+</html>

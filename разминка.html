@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>raz</title>
+<meta charset='UTF-8'>
+
+<style>
+  body{
+    background-color: #999999;
+
+  }
+
+  #can{
+    background-color: #996655;
+  }
+
+  div{
+    width: 50%;
+    height: 300px;
+    font-size: 40px;
+    background-color: #333333;
+    color: #888888;
+    margin: 100px auto;
+    text-align: center;
+
+  }
+
+
+
+</style>
+
+</head>
+<body>
+
+    <div id='d'></div>
+
+<script>
+
+  class A{
+    constructor() {
+      this.div = document.getElementById('d')
+
+    }
+
+    nA(val) {
+      this.div.innerHTML = val;
+    }
+
+
+    mA() {
+      this.fff = 20;
+      return this.fff;
+    }
+
+    mmA() {
+      return this.mA.bind(this)
+    }
+
+  }
+
+  class B{
+    constructor() {
+      this.x = 10;
+
+    }
+
+    mB(q) {
+      return q();
+    }
+
+
+
+  }
+
+
+  let a = new A;
+  let b = new B;
+
+  //console.log(b.mB(a.mmA()));
+
+  a.nA('Балбин')
+
+
+</script>
+</body>
+</html>

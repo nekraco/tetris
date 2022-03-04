@@ -1,0 +1,114 @@
+ЕЩЕ СПРАВКА
+
+1. В классе можно использовать обычные функции:
+  class X{
+
+    met() {
+      return getRandomInt(1, 5)
+    }
+  }
+
+  function getRandomInt(min, max) {
+    return Math.floor(Math.random() * (max - min + 1)) + min;
+  }
+
+  let xxxx = new X;
+  console.log(xxxx.met())  //выведет число от 1 до 5(включительно)
+
+
+2. Если есть цепочка из двух классов:
+
+  class A{
+    constructor() {
+      this.d = document.getElementById('d');
+    }
+
+    m() {
+      this.d.innerHTML = 'www'
+    }
+
+  }
+
+  class B{
+    constructor() {
+      this.a = new A;
+    }
+
+  }
+
+  то вызвать метод первого класса можно по цепочке, через второй:
+
+  let b = new B;
+  b.a.m()   // выведет www;
+
+
+  Если цепочка из трех классов, то также по цепочке:
+
+  class A{
+    constructor() {
+      this.d = document.getElementById('d');
+    }
+
+    m() {
+      this.d.innerHTML = 'www WWW'
+    }
+
+  }
+
+  class B{
+    constructor() {
+      this.a = new A;
+    }
+
+  }
+
+  class C{
+    constructor() {
+      this.b = new B;
+    }
+
+  }
+
+  let c = new C;
+  c.b.a.m()  выведет www WWW;
+
+
+3.
+
+  Цепочка из двух классов:
+
+  class FIG{
+    constructor(nameInner, color) {
+      this.d = document.getElementById('d');
+      this.g = 0;
+      this.n = nameInner;
+      this.col = color;
+
+    }
+
+    m() {
+      this.g++;
+      this.d.innerHTML = this.n + this.g + ' | ' + list;
+      this.d.style.color = this.col;
+
+    }
+
+  }
+
+  class INTERVAL{
+    constructor() {
+      this.a1 = new FIG('a1', '#ffff00');
+
+    }
+
+    met() {
+      this.a1.m();
+
+    }
+
+  }
+
+  Мы можем вызвать метод внутри метода второго класса:
+
+  let inter = new INTERVAL;
+  inter.met()  //вот так работает;

@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>tetrisTask</title>
+<meta charset='UTF-8'>
+
+<style>
+  body{
+    background-color: #999999;
+
+  }
+
+
+
+  div{
+    width: 50%;
+    height: 300px;
+    font-size: 40px;
+    background-color: #333333;
+    color: #888888;
+    margin: 100px auto;
+    text-align: center;
+
+  }
+
+
+
+</style>
+
+</head>
+<body>
+
+  <div id='d'></div>
+
+<script>
+  let t = 0;
+
+  setInterval(() => {
+    t++;
+
+    func1(t);
+    func2(t);
+
+    d.innerHTML = t;
+
+  }, 300)
+
+  function func1(x) {
+    if(x >= 5) {
+      x = -10;
+    }
+  }
+
+  function func2(x) {
+    if(x >= 5) {
+      t = -100;
+    }
+  }
+
+//Очень удивительно, но функция 1 не меняет переменную т, хотя эта переменная 'входит' в функцию через параметр!!!!
+
+
+
+
+
+</script>
+</body>
+</html>

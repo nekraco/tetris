@@ -1,0 +1,278 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>tetrisF</title>
+<meta charset='UTF-8'>
+
+<style>
+  body{
+    background-color: #cccc77;
+
+  }
+
+  table{
+    margin: 10px auto;
+    border: 0px solid #ffffff;
+    border-spacing: 0px;
+
+  }
+
+  td{
+    width: 40px;
+    height: 40px;
+    border: 1px solid black;
+    padding: 0px;
+
+    font-size: 20px;
+
+  }
+
+  #info{
+    width: 98vw;
+    height: 30px;
+    font-size: 17px;
+    color: red;
+    background-color: blue;
+  }
+
+
+
+</style>
+
+</head>
+<body>
+
+  <input id='info'>
+  <input id='info2'>
+
+
+<script>
+//adjust - регулировать
+
+// глобальные переменные;
+  let bc = 'cadetblue';    // цвет фона;
+  let wf = 11;        // ширина поля;
+  let hf = 16;        // высота поля;
+  let X = 5;
+  let Y = -1;
+
+
+  let info = document.getElementById('info');
+  let info2 = document.getElementById('info2');
+
+//  let a, b;
+
+
+  createTab(wf, hf);
+
+//Игровое поле - таблицу создадим с помощью функции;
+  function createTab(w, h) {
+    let body = document.querySelector('body');
+    let tab = document.createElement('table');
+    body.appendChild(tab);
+
+    for(let i = 0; i < h; i ++) {
+      let tr = document.createElement('tr');
+      tab.appendChild(tr);
+
+      for(let j = 0; j < w; j ++) {
+        let td = document.createElement('td');
+        tr.appendChild(td);
+        td.style.backgroundColor = bc;
+  } } }
+
+
+  let tab = document.querySelector('table');
+  let trs = document.getElementsByTagName('tr');
+  let tds = document.getElementsByTagName('td');
+
+
+  function paintCell(x, y, color) {
+    //info.value = x
+    if(x >= 0 && x < wf ) {
+      trs[y].children[x].style.backgroundColor = color;
+    }
+  }
+
+
+
+  function borderA(x, y) {
+    let leftCellErase = 0;
+    for (let i = x; i >= 0; i--) {
+      if (trs[y].children[i].innerHTML == 'w') {
+        leftCellErase = i + 1;
+        break;
+    } }
+    return leftCellErase;
+  }
+
+  function borderB(x, y) {
+    let rightCellErase = wf - 1;
+    for (let i = x; i < wf; i++) {
+      if (trs[y].children[i].innerHTML == 'w') {
+        rightCellErase = i - 1;
+        break;
+    } }
+    return rightCellErase;
+  }
+
+  function markCells() {
+    for (let i = 0; i < this.tds.length; i++) {
+      if(tds[i].style.backgroundColor != bc) {
+        tds[i].innerHTML = 'w';
+      }else{
+        tds[i].innerHTML = '';
+  } } }
+
+  function isRowMark(num) {
+    for (let i = 0; i < wf; i++) {
+      if(trs[num].children[i].innerHTML != 'w'){
+        return false;
+    } }
+      return true;
+  }
+
+  function returnNumCellX(e) {
+    let coordX = Math.floor((e.pageX - tab.offsetLeft)/(tds[1].offsetLeft));
+    if(coordX < 0) {
+      coordX = 0;
+    }
+    if(coordX > 10) {
+      coordX = 10;
+    }
+    return coordX;
+  }
+
+  function xCell(e) {
+    let a = 0;
+    let b = 10;
+    //let a = borderA(x, y);
+    //let b = borderB(x, y);
+
+
+    let zzz = returnNumCellX(e)
+    if(zzz >= a && zzz <= b) {
+      X = zzz;
+      //info.value = this.x
+    }
+  }
+
+
+  function paintRowOfFigure(x, y, _y, col1, col2, col3) {
+   if(y >= _y) {
+    //let a = borderA(x, y);
+    //let b = borderB(x, y);
+
+    for (let i = 0; i < wf; i++) {
+      trs[y - _y].children[i].style.backgroundColor = bc;
+    }
+
+    paintCell(x - 1, y - _y, col1);
+    paintCell(x, y - _y, col2);
+    paintCell(x + 1, y - _y, col3);
+    //info.value = x
+   }
+  }
+
+
+
+  function paintFigure(x, y, c1, c2, c3, c4, c5, c6, c7, c8, c9) {
+    if((c1 != 'x' || c2 != 'x' || c3 != 'x') && x == 0) {
+      x = 1;
+    }
+
+    paintRowOfFigure(x, y, 3, bc, bc, bc);
+    paintRowOfFigure(x, y, 2, c1, c2, c3);
+    paintRowOfFigure(x, y, 1, c4, c5, c6);
+    paintRowOfFigure(x, y, 0, c7, c8, c9);
+
+  }
+
+  function getColorCell(x, y) {
+    if(x >= 0 && x < wf && y >= 0 && y < hf) {
+      //info.value = x + ' || ' + y;
+      return trs[y].children[x].style.backgroundColor;
+
+    }
+  }
+
+
+  function stopCell(x, y) {
+
+    if(y < 16 && getColorCell(x, y) != bc && getColorCell(x, y + 1) != bc) {
+
+      Y = 0;
+
+    }
+
+    if(y < 16 && getColorCell(x, y-2) != bc && getColorCell(x, y - 1) != bc) {
+
+      Y = 0;
+
+    }
+
+
+
+  }
+
+
+  //paintCell(2, 5, 'x')
+
+  //paintRowOfFigure(X, Y, 0, 'red', 'red', 'red');
+
+
+  function timerX() {
+    tab.addEventListener('mousemove', (e) => {
+    //this.x = this.returnNumCellX(e);
+    //xCell(e);
+    X = returnNumCellX(e);
+
+    //info2.value = returnNumCellX(e);
+    });
+    setInterval(() => {
+      paintFigure(X, Y, 'red', 'red', 'x', 'x', 'red', 'x', 'x', 'red', 'x')
+
+    }, 1)
+  }
+
+  function timerY() {
+      paintFigure(X, Y, 'red', 'red', 'x', 'x', 'red', 'x', 'x', 'red', 'x')
+
+
+    setInterval(() => {
+      //if(Y == 15) {
+      //  Y = 1;
+      //}
+
+      Y++;
+
+      paintFigure(X, Y, 'red', 'red', 'x', 'x', 'red', 'x', 'x', 'red', 'x')
+      stopCell(X, Y)
+
+      info.value = getColorCell(X, Y)
+      info2.value = getColorCell(X, Y+1)
+
+
+
+      //info2.value = Y
+
+      //info.value = getColorCell(X, Y)
+
+
+
+    }, 500)
+  }
+
+
+  timerX()
+  timerY()
+
+
+
+
+
+
+
+</script>
+</body>
+</html>

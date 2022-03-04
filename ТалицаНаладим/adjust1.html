@@ -1,0 +1,732 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>adjust1</title>
+<meta charset='UTF-8'>
+
+<style>
+  body{
+    background-color: #cccc77;
+
+  }
+
+  #d{
+    background-color: #330055;
+
+  }
+
+  #can{
+    background-color: #99aa55;
+
+  }
+
+  #divTab{
+    //margin: 30px auto;
+
+    position: absolute;
+    left: 580px;
+    top: 20px;
+    width: 126px;
+    height: 20px;
+    background-color: #333333;
+  }
+
+  /* div{
+    width: 50%;
+    height: 300px;
+    font-size: 40px;
+    background-color: #333333;
+    color: #888888;
+    margin: 100px auto;
+    text-align: center;
+
+  } */
+
+  table{
+    margin: 10px auto;
+    /* position: absolute;
+    left: 300px;
+    top: 100px; */
+
+    //border: 1px solid red;
+    border-spacing: 0px;
+
+  }
+
+
+
+  td{
+    width: 40px;
+    height: 40px;
+    border: 1px solid black;
+    padding: 0px;
+  }
+
+  #info{
+    width: 1000px;
+    height: 20px;
+    font-size: 17px;
+    color: red;
+  }
+
+
+
+</style>
+
+</head>
+<body id='b'>
+
+  <input id='info'>
+
+   <!-- <div id='divTab'></div> -->
+
+
+
+<script>
+//adjust - регулировать
+
+//Задача1
+//Сделаем табличное поле для тетриса и попробуем наладить, перемещение мышкой простой фигуры, так чтобы не было выделения лишних клеток (даже при быстром перемещении)
+
+  let bc = 'blue';
+
+  let info = document.getElementById('info');
+
+
+  function createTab(w, h) {
+    let body = document.getElementById('b');
+
+    let tab = document.createElement('table');
+    body.appendChild(tab);
+
+    for(let i = 0; i < h; i ++) {
+      let tr = document.createElement('tr');
+      tab.appendChild(tr);
+
+      for(let j = 0; j < w; j ++) {
+        let td = document.createElement('td');
+        tr.appendChild(td);
+        td.style.backgroundColor = bc;
+        // td.addEventListener('mousemove', (e) => {
+        //   info.value = e.pageX - 580;
+        //
+        // });
+      }
+
+    }
+
+  }
+
+  createTab(10, 16)
+
+  // let tab = document.querySelector('table');
+  // let tds = document.querySelectorAll('td');
+  //
+  // tab.addEventListener('mousemove', (e) => {
+  //   gX = Math.ceil((e.pageX - tab.offsetLeft)/(tds[1].offsetLeft));
+  //
+  // });
+
+
+
+//row - ряд;
+//column - столбец;
+//quantity - количество;
+
+  class DRAW{
+    constructor() {
+      this.trs = document.getElementsByTagName('tr')
+      this.tds = document.getElementsByTagName('td')
+    }
+
+    setColorCell(row, column, col) {
+      if(column >= 1 && column <= 10) {
+        this.quantityInOneRow = this.tds.length/this.trs.length;
+        this.cellNum = this.quantityInOneRow * (row - 1) + column - 1;
+        this.tds[this.cellNum].style.backgroundColor = col;
+
+      }
+    }
+
+    getColorCell(row, column) {
+      if(column >= 1 && column <= 10 && row <= 16) {
+        this.quantityInOneRow = this.tds.length/this.trs.length;
+        this.cellNum = this.quantityInOneRow * (row - 1) + column - 1;
+        return this.tds[this.cellNum].style.backgroundColor;
+
+      }
+
+
+    }
+
+
+    getColorRow(row) {
+      this.arCol = [];
+      for (let i = 0; i < this.trs[0].children.length; i++) {
+        this.arCol[i] = this.trs[row - 1].children[i].style.backgroundColor;
+
+      }
+      return this.arCol;
+
+    }
+
+  }
+
+  //let ddr = new DRAW;
+  //ddr.setColorCell(7, 2, 'green');
+  //ddr.setColorCell(7, 7, 'green');
+
+
+  class FIGURE{
+    constructor([c1, c2, c3, c4, c5, c6, c7, c8, c9]) {
+      this.dr = new DRAW;
+      //this.al(this.dr.getColorRow(1))
+
+      this.col1 = c1;
+      this.col2 = c2;
+      this.col3 = c3;
+      this.col4 = c4;
+      this.col5 = c5;
+      this.col6 = c6;
+      this.col7 = c7;
+      this.col8 = c8;
+      this.col9 = c9;
+
+
+      this.leftX = 1;
+      this.rightX = 10;
+      this.limitRow();
+
+    }
+
+    al(par) {
+      alert(par);
+    }
+
+    limitRow() {
+      if(this.col1 == bc && this.col4 == bc && this.col7 == bc) {
+        this.leftX = 1;
+      } else {
+        this.leftX = 2;
+      }
+
+      if(this.col3 == bc && this.col6 == bc && this.col9 == bc) {
+        this.rightX = 10;
+      } else {
+        this.rightX = 9;
+      }
+
+    }
+
+    paintRow(x, y, y_minus, col1, col2, col3) {
+      if(y > y_minus) {
+
+        //this.ooo = this.dr.getColorRow(y)
+        //info.value = this.ooo
+        for (let i = 0; i < 10; i++) {
+          this.dr.setColorCell(y - y_minus, i + 1, bc);
+        }
+
+        this.dr.setColorCell(y - y_minus, x - 1, col1);
+        this.dr.setColorCell(y - y_minus, x, col2);
+        this.dr.setColorCell(y - y_minus, x + 1, col3);
+
+      }
+
+    }
+
+    drawFig(x, y) {
+      if(x <= this.leftX) {
+        x = this.leftX;
+      }
+
+      if(x >= this.rightX) {
+        x = this.rightX;
+      }
+
+
+
+      this.paintRow(x, y, 3, bc, bc, bc);
+      this.paintRow(x, y, 2, this.col1, this.col2, this.col3);
+      this.paintRow(x, y, 1, this.col4, this.col5, this.col6);
+      this.paintRow(x, y, 0, this.col7, this.col8, this.col9);
+
+    }
+
+  }
+
+
+
+
+  class F1{
+    constructor() {
+      this.c = 'red';
+      this.arF1 = [this.c, bc, bc, this.c, this.c, bc, this.c, bc, bc];
+      this.arF2 = [bc, bc, bc, bc, this.c, bc, this.c, this.c, this.c];
+
+      this.fig1 = new FIGURE(this.arF1);
+      this.fig2 = new FIGURE(this.arF2);
+
+      this.ar = [this.fig1, this.fig2];
+
+    }
+
+    getAr() {
+      return this.ar;
+    }
+
+  }
+
+  class F2{
+    constructor() {
+      this.c = '#ffff00';
+      this.arF1 = [this.c, bc, bc, this.c, bc, bc, this.c, this.c, bc];
+      this.arF2 = [bc, bc, bc, this.c, bc, bc, this.c, this.c, this.c];
+
+      this.fig1 = new FIGURE(this.arF1);
+      this.fig2 = new FIGURE(this.arF2);
+
+      this.ar = [this.fig1, this.fig2];
+
+    }
+
+    getAr() {
+      return this.ar;
+    }
+
+  }
+
+  //bc = 'rgb(0, 68, 102)';
+
+  class MANAGER{
+    constructor() {
+      this.dr = new DRAW;
+
+      this.xx = 4;
+      this.yy = 1;
+
+      this.tab = document.querySelector('table');
+      this.tds = document.querySelectorAll('td');
+
+      this.f1 = new F1;
+      this.f2 = new F2;
+
+      this.ch = 0;
+
+      this.flag = 0;
+
+    }
+
+    random() {
+      this.arr = [this.f1, this.f2];
+      return this.arr[this.getRandomInt(0, 1)]
+    }
+
+    switch1() {
+      this.tab.addEventListener('click', (e) => {
+        this.ch++;
+        if(this.ch == 2) {
+          this.ch = 0
+        }
+
+      });
+    }
+
+    ifff(y, x) {
+      if(y >= 1 && this.dr.getColorCell(y, x) != bc && this.dr.getColorCell(y + 1 , x) != bc) {
+        this.yy = 1;
+        info.value = this.yy
+      }
+
+      // if(y >= 1 && this.dr.getColorCell(y, x) == bc && this.dr.getColorCell(y + 1, x) != bc) {
+      //   this.flag = 1;
+      // }
+      //
+      // if(y >= 2 && this.dr.getColorCell(y - 1, x) != bc && this.dr.getColorCell(y, x) != bc && this.flag == 1) {
+      //   y = 1;
+      //   this.flag = 0;
+      // }
+      //
+      // if(y >= 2 && this.dr.getColorCell(y - 1, x) == bc && this.dr.getColorCell(y, x) != bc && this.flag == 1) {
+      //
+      //   this.flag = 2;
+      // }
+      //
+      // if(y >= 3 && this.dr.getColorCell(y - 2, x) != bc && this.dr.getColorCell(y - 1, x) != bc && this.flag == 1) {
+      //   y = 1;
+      //   this.flag = 0;
+      // }
+      //
+      // if(y >= 3 && this.dr.getColorCell(y - 2, x) == bc && this.dr.getColorCell(y - 1, x) != bc && this.flag == 2) {
+      //   this.flag = 0;
+      // }
+      //
+
+    }
+
+
+    timerX() {
+      this.switch1()
+      this.tab.addEventListener('mousemove', (e) => {
+        this.xx = Math.ceil((e.pageX - this.tab.offsetLeft)/(this.tds[1].offsetLeft));
+
+      });
+
+      this.f = this.random();
+
+      setInterval(() => {
+        //info.value = this.yy
+
+      //  info.value = this.dr.getColorCell(this.yy + 1, this.xx);
+
+        this.f.getAr()[this.ch].drawFig(this.xx, this.yy)
+
+
+
+      }, 50);
+
+    }
+
+    timerY() {
+
+      setInterval(() => {
+        // if(this.dr.getColorCell(this.yy, this.xx) != 'red') {
+        //    this.yy = 5;
+        // }
+
+
+        this.ifff(this.yy, this.xx - 1);
+        this.ifff(this.yy, this.xx);
+        this.ifff(this.yy, this.xx + 1);
+
+
+
+        if(this.yy == 1) {
+          this.f = this.random();
+        }
+        this.yy++;
+
+
+
+
+
+
+
+
+
+        if(this.yy == 17) {
+          this.yy = 1;
+        }
+
+
+
+
+
+
+      }, 300);
+
+    }
+
+    getRandomInt(min, max) {
+	    return Math.floor(Math.random() * (max - min + 1)) + min;
+    }
+
+
+
+
+  }
+
+  let m = new MANAGER;
+  m.timerY();
+  m.timerX();
+
+
+
+
+  function componentToHex(c) {
+    var hex = c.toString(16);
+    return hex.length == 1 ? "0" + hex : hex;
+  }
+
+  function rgb2hex(r, g, b) {
+    return "#" + componentToHex(r) + componentToHex(g) + componentToHex(b);
+  }
+
+
+
+  // let fl = 0;
+  //
+  // tab.addEventListener('click', () => {
+  //   fl++;
+  //   if(fl == 2) {
+  //     fl = 0;
+  //   }
+  //   info.value = fl
+  // });
+  //
+  // let co = 'red';
+  // let arCol1 = [bc, bc, bc, co, bc, bc, co, co, co];
+  // let arCol2 = [co, bc, bc, co, bc, bc, co, co, bc];
+  //
+  //
+  // let fig1 = new FIGURE(arCol1);
+  // let fig2 = new FIGURE(arCol2);
+  //
+  // let arF = [fig1, fig2];
+  //
+  // function f(x) {
+  //   x.drawFig(gX, gY);
+  // }
+
+  // setInterval(function() {
+  //
+  //   f(arF[fl]);
+  //
+  //   //fig2.drawFig(gX, gY);
+  //
+  //
+  // }, 30);
+
+  //gY = 7
+
+  // setInterval(function() {
+  //   //figure.fig()
+  //   gY++;
+  //
+  //   if(gY == 17) {
+  //     gY = 1;
+  //   }
+  //
+  //   //info.value = gY;
+  // }, 500);
+
+
+
+  //
+  // let tt = document.querySelectorAll('td');
+  // let ss = document.querySelectorAll('tr');
+  //
+  // // for(let t of tt) {
+  // //   t.innerHTML = 1;
+  // // }
+  //
+  // let ar = ss[4].children
+  //
+  // for(let s of ar) {
+  //   s.style.backgroundColor = '#ffff00';
+  // }
+//1111111111111111111111111111111111111111111111111111
+  //ss[3].children[2].style.backgroundColor = '#ffff00';
+
+
+  //ttab.style.backgroundColor = '#550000'
+
+
+//   let glX = 4;
+//   let glY = 0;
+//
+//   let inp = document.getElementById('innp');
+//   //let d = document.getElementById('d');
+//   let can = document.getElementById('can');
+//   let c = can.getContext('2d');
+//
+//   function drowTable() {
+//
+//     for (let i = 0; i <= 20; i++) {
+//       c.beginPath();
+//       c.moveTo(0, i * 35);
+//       c.lineTo(350, i * 35);
+//       c.lineWidth = 2
+//       c.stroke();
+//     }
+//     for (let i = 0; i <= 10; i++) {
+//       c.beginPath();
+//       c.moveTo(i * 35, 0);
+//       c.lineTo(i * 35, 700);
+//       //c.lineWidth = 2
+//       c.stroke();
+//     }
+//
+//
+//   }
+//
+//   drowTable()
+//
+//   function fillRect(x, y, col, wid) {
+//     let rectX = x * 35;
+//     let rectY = y * 35;
+//
+//     c.beginPath();
+//     c.fillStyle = 'black';
+//     c.strokeRect(rectX, rectY, 35, 35);
+//     c.lineWidth = wid;
+//
+//     //c.beginPath();
+//     c.fillStyle = col;
+//     c.fillRect(rectX, rectY, 35, 35);
+//
+//   }
+//
+//
+//
+//   class O{
+//     constructor() {
+//       for (let i = 0; i < 10; i++) {
+//         this[i] = [];
+//         for (let j = 0; j < 20; j++) {
+//           this[i].push(0);
+//         }
+//       }
+//     }
+//
+//     bindObjectAndTable() {
+//       for (let i = 0; i < 10; i++) {
+//         for (let j = 0; j < 20; j++) {
+//           if (this[i][j] == 0) {
+//             fillRect(i, j, '#99aa55', 2);
+//           }
+//
+//           if (this[i][j] == 1) {
+//             fillRect(i, j, 'red', 2);
+//           }
+//
+//           if (this[i][j] == 2) {
+//             fillRect(i, j, 'green', 2);
+//           }
+//
+//           if (this[i][j] == 3) {
+//             fillRect(i, j, 'blue', 2);
+//           }
+//
+//         }
+//       }
+//     }
+// //cell - клетка
+//     setCell(x, y, vol) {
+//       if(x >= 0 && x <= 9) {
+//         this[x][y] = vol;
+//       }
+//     }
+//
+//     getCell(x, y) {
+//       if(x >= 0 && x <= 9) {
+//         return this[x][y];
+//       }
+//     }
+//
+//     getArrX(y) {
+//       this.ar = [];
+//       for(let k = 0; k < 10; k++) {
+//         this.ar.push(this[k][y]);
+//       }
+//
+//       return this.ar;
+//     }
+//
+//
+//   }
+//
+//   let o = new O;
+//
+//
+//
+//   // o.setCell(1, 5, 1);
+//   // o.setCell(3, 5, 2);
+//   // o.setCell(7, 5, 3);
+//
+//   //let xxx = o.getArrX(glY);
+//
+//   class FIGURES{
+//     constructor(width, height) {
+//       this.o = new O;
+//
+//       this.w = width;
+//       this.h = height;
+//
+//     }
+//
+//     doFigure() {
+//       for (let i = 0; i < 10; i++) {
+//         this.o.setCell(i, glY - 1, 0);
+//       }
+//
+//       for (let i = 0; i < this.h; i++) {
+//
+//         for (let j = 0; j < this.w; j++) {
+//           this.o.setCell(glX + j, glY + i, 2);
+//
+//         }
+//       }
+//
+//
+//       this.o.bindObjectAndTable()
+//       drowTable()
+//
+//     }
+//   }
+//
+//   let figu = new FIGURES(3, 1)
+//
+//
+//
+//
+//
+//
+//   divCan.addEventListener('mousemove', (e) => {
+//     //glX = Math.round((e.pageX - 615)/35);
+//     glX = Math.floor((e.pageX - 8)/35)
+//     //inp.value = glX
+//   });
+//
+//
+//
+//
+//   function start(fff) {
+//     window.stop2 = setInterval(() => {
+//       //let fff = randomF(doFigure1, doFigure2);
+//       fff()
+//
+//     }, 1)
+//
+//   }
+//
+//   //alert(figu.doFigure)
+//
+//   let vc = figu.doFigure
+//   vc()
+//
+//   window.stop = setInterval(() => {
+//     if(glY == 0) {
+//       // let funcc = randomF(doFigure1, doFigure2);
+//       // window.clearInterval(window.stop2)
+//       //start(figu.doFigure)
+//
+//
+//     }
+//     //figu.doFigure()
+//
+//     glY++;
+//     xxx = o.getArrX(glY);
+//   }, 500)
+//
+//
+//   innp.addEventListener('click', () => {
+//     clearInterval(window.stop)
+//   })
+
+
+//Более менее работает если не врезаться в боковые стороны поля
+
+
+
+
+
+
+
+
+
+
+
+</script>
+</body>
+</html>
